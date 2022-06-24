@@ -1,15 +1,20 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"math/rand"
+	"net/http"
 	"os"
 	"sort"
+	"strings"
 	"time"
 
 	. "genetic-algorithm-si27s/src"
+
+	"github.com/gorilla/mux"
 )
 
 const (
@@ -18,7 +23,24 @@ const (
 	MutationRate   = 0.03
 )
 
+type Solution struct {
+	Dna        string
+	Fitness    string
+	Generation string
+	Found_in   string
+}
+
 func main() {
+	rotes := mux.NewRouter().StrictSlash(true)
+
+	rotes.HandleFunc("/", getSolution).Methods("GET")
+	var port = ":3000"
+	fmt.Println("Server running in port:", port)
+	log.Fatal(http.ListenAndServe(port, rotes))
+
+}
+
+func handleSolution() Solution {
 	dataset, err := os.Open("data/dataset.csv")
 	if err != nil {
 		log.Fatal(err)
@@ -34,6 +56,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer func(w *os.File) {
 		err := w.Close()
 		if err != nil {
@@ -115,6 +138,33 @@ func main() {
 			"- - - - - - - - - - - - - - - - - - - -\n"+
 			"> END\n",
 		solution.DNA, solution.Fitness, foundAt, elapsed)
+
+	dna := arrayToString(solution.DNA, " ")
+	fitness := fmt.Sprintf("%f", solution.Fitness)
+	generationSol := fmt.Sprintf("%d", foundAt)
+	found_in := fmt.Sprintf("%dms", elapsed)
+
+	var solucao = Solution{
+		Dna:        dna,
+		Fitness:    fitness,
+		Generation: generationSol,
+		Found_in:   found_in,
+	}
+
+	return solucao
+}
+
+func getSolution(w http.ResponseWriter, r *http.Request) {
+	solution := handleSolution()
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(solution)
+}
+
+func arrayToString(a []int, delim string) string {
+	return strings.Trim(strings.Replace(fmt.Sprint(a), " ", delim, -1), "[]")
+	//return strings.Trim(strings.Join(strings.Split(fmt.Sprint(a), " "), delim), "[]")
+	//return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(a)), delim), "[]")
 }
 
 func write(w io.Writer, str string, args ...interface{}) {
