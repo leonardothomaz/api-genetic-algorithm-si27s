@@ -34,7 +34,7 @@ func main() {
 	rotes := mux.NewRouter().StrictSlash(true)
 
 	rotes.HandleFunc("/", getSolution).Methods("GET")
-	var port = ":3000"
+	var port = ":8080"
 	fmt.Println("Server running in port:", port)
 	log.Fatal(http.ListenAndServe(port, rotes))
 
@@ -158,6 +158,7 @@ func getSolution(w http.ResponseWriter, r *http.Request) {
 	solution := handleSolution()
 
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	json.NewEncoder(w).Encode(solution)
 }
 
