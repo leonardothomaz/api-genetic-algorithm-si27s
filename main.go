@@ -34,7 +34,7 @@ func main() {
 	rotes := mux.NewRouter().StrictSlash(true)
 
 	rotes.HandleFunc("/", getSolution).Methods("GET")
-	var port = ":8080"
+	var port = ":8000"
 	fmt.Println("Server running in port:", port)
 	log.Fatal(http.ListenAndServe(port, rotes))
 
